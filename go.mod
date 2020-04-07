@@ -1,4 +1,4 @@
-module github.com/openvino/openvino-api
+module github.com/jestape/hackovid-dyb-api
 
 go 1.14
 

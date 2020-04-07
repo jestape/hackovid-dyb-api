@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"encoding/json"
 	"net/http"
 	"github.com/jinzhu/gorm"
