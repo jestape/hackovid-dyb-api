@@ -22,3 +22,12 @@ func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 func respondError(w http.ResponseWriter, code int, message string) {
 	respondJSON(w, code, map[string]string{"error": message})
 }
+
+func checkNotNil(value string, message string, w http.ResponseWriter) (bool) {
+	if value == "" {
+		respondError(w, http.StatusBadRequest, "Missing parameters: " + message)
+		return false
+	} else {
+		return true;
+	}
+}

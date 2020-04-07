@@ -8,9 +8,8 @@ import (
 )
 
 type User struct {
-	gorm.Model
 
-	PublicKey 		string  		`gorm:"unique" json:"public_key"`
+	PublicKey 		string  		`gorm:"primary_key" json:"public_key"`
 	Name  			string     		`gorm:"not null" json:"name"`
 	Email	 		string			`gorm:"not null" json:"email"`
 	NIF				string			`gorm:"not null" json:"nif"`
@@ -18,14 +17,13 @@ type User struct {
 	
 }
 
-/*type Product struct {
-	gorm.Model
+type Product struct {
 
-	ID				uint		
-	Name  			string     	`json:"name"`
-	Price	 		uint		`json:"price"`
+	ID				uint		`gorm:"primary_key" json:"product_id"`
+	Name  			string     	`gorm:"not null" json:"name"`
+	Price	 		uint		`gorm:"default:0" json:"price"`
 
-}*/
+}
 
 /*type Ticket struct {
 	gorm.Model
@@ -42,7 +40,7 @@ type User struct {
 // DBMigrate will create and migrate the tables, and then make the some relationships if necessary
 func DBMigrate(db *gorm.DB) *gorm.DB {
 	db.AutoMigrate(&User{})	
-	//db.AutoMigrate(&Product{})	
+	db.AutoMigrate(&Product{})	
 	//db.AutoMigrate(&Ticket{})
 	return db
 }

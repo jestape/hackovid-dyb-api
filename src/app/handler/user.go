@@ -54,12 +54,3 @@ func CreateUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusCreated, user)
 
 }
-
-func checkNotNil(value string, message string, w http.ResponseWriter) (bool) {
-	if value == "" {
-		respondError(w, http.StatusBadRequest, "Missing parameters: " + message)
-		return false
-	} else {
-		return true;
-	}
-}
