@@ -10,28 +10,30 @@ import (
 type User struct {
 	gorm.Model
 
-	PublicKey 		string  		`gorm:"primary_key" json:"public_key"`
-	Name  			string     		`json:"name"`
-	Email	 		string			`json:"email"`
-	NIF				string			`json:"NIF"`
-
+	PublicKey 		string  		`gorm:"unique" json:"public_key"`
+	Name  			string     		`gorm:"not null" json:"name"`
+	Email	 		string			`gorm:"not null" json:"email"`
+	NIF				string			`gorm:"not null" json:"nif"`
+	Role			string			`gorm:"default:'receiver'"`
+	
 }
 
 /*type Product struct {
 	gorm.Model
 
-	ProductId		uint  		`gorm:"primary_key;auto_increment:true"  json:"product_id"`
+	ID				uint		
 	Name  			string     	`json:"name"`
-	Price	 		uint		`json:"email"`
+	Price	 		uint		`json:"price"`
 
 }*/
 
 /*type Ticket struct {
+	gorm.Model
 
-	Seller		User  			`gorm:"primary_key;auto_increment:false" json:"seller"` 
-	Buyer 		User  			`gorm:"primary_key" json:"buyer"`
-	Timestamp	time.Time		`gorm:"primary_key" json:"timestamp"`
-	Products	[]Product		`json:"buyer"`
+	Seller		string  		`gorm:"foreignkey:PublicKey" json:"seller"` 
+	Buyer 		string  		`gorm:"foreignkey:PublicKey" json:"buyer"`
+	Timestamp	time.Time		`json:"timestamp"`
+	Products	[]Product		`gorm:"many2many:product_tickets" json:"products"`
 	TotalPrice	uint			`json:"total_price"`
 	Hash		string			`json:"integrity_proof"`
 
