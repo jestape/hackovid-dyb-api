@@ -46,8 +46,10 @@ func (a *App) setRouters() {
 
 	a.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("Hello world! This is the DoYourBit api.")) })
 	
+	
 	a.Get("/users", a.handleRequest(handler.GetUsers))
-	a.Post("/user", a.handleRequest(handler.CreateUser))
+	a.Get("/users/{pk}", a.handleRequest(handler.GetUser))
+	a.Post("/users", a.handleRequest(handler.CreateUser))
 
 }
 

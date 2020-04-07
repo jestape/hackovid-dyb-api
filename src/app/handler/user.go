@@ -2,10 +2,23 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"net/http"
 	"github.com/jinzhu/gorm"
 	"github.com/jestape/hackovid-dyb-api/src/app/model"
 )
+
+func GetUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	
+	user := model.User{}
+	params := mux.Vars(r)
+	if err := db.Where(&model.User{PublicKey: params["pk"]}).Find(&user).Error; err != nil {
+		respondError(w, http.StatusOK, "User not found") 
+	} else {
+		respondJSON(w, http.StatusOK, user) 
+	}
+	
+}
 
 func GetUsers(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	
@@ -15,7 +28,6 @@ func GetUsers(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, users)
 	
 }
-
 
 func CreateUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	
