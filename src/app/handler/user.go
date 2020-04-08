@@ -30,7 +30,7 @@ func GetUsers(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	
 }
 
-func CreateUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+func CreateSeller(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	
 	var user model.User = model.User{}
 
@@ -46,6 +46,8 @@ func CreateUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 
+	user.Role = "Seller"
+
 	if err := db.Save(&user).Error; err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -54,3 +56,31 @@ func CreateUser(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusCreated, user)
 
 }
+
+func CreateBuyer(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	
+	var user model.User = model.User{}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	defer r.Body.Close()
+	
+	if (!checkNotNil(user.PublicKey, "public_key", w) || !checkNotNil(user.Name, "user_name", w) ||
+			!checkNotNil(user.Email, "email", w) || !checkNotNil(user.NIF, "nif", w)) { 
+		return 
+	}
+
+	user.Role = "Buyer"
+
+	if err := db.Save(&user).Error; err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondJSON(w, http.StatusCreated, user)
+
+}
+
