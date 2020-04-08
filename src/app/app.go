@@ -6,12 +6,14 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
 	"github.com/jestape/hackovid-dyb-api/src/app/handler"
 	"github.com/jestape/hackovid-dyb-api/src/app/model"
 	"github.com/jestape/hackovid-dyb-api/src/config"
+	
 )
 
 // App has router and db instances
@@ -85,7 +87,12 @@ func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)
 
 // Run the app on it's router
 func (a *App) Run(host string) {
-	log.Fatal(http.ListenAndServe(host, a.Router))
+
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
+
+	log.Fatal(http.ListenAndServe(host, handlers.CORS(headersOk, originsOk, methodsOk)(a.Router)))
 }
 
 type RequestHandlerFunction func(db *gorm.DB, w http.ResponseWriter, r *http.Request)
