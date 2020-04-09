@@ -42,7 +42,7 @@ func GetTicketsUserB(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 func GetTicketsUserS(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
-	buyer := r.URL.Query().Get("seller")
+	seller := r.URL.Query().Get("seller")
 	tickets := []model.Ticket{}
 	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("seller_id = ?", seller).Find(&tickets)
 	respondJSON(w, http.StatusOK, tickets)
