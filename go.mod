@@ -8,4 +8,5 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/spf13/viper v1.6.2
 	github.com/gorilla/handlers v1.4.2
+	github.com/ethereum/go-ethereum v1.9.12
 )
