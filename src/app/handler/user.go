@@ -17,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	common2 "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	token "github.com/jestape/hackovid-dyb-api/src/app/contracts"
@@ -70,7 +71,7 @@ func CreateSeller(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	Verify(user.PublicKey, "seller", w, r);
-
+	Fund(user.PublicKey, w, r)
 	respondJSON(w, http.StatusCreated, user)
 
 }
@@ -98,8 +99,8 @@ func CreateBuyer(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Verify(user.PublicKey, "Buyer", w, r);
-
+	Verify(user.PublicKey,  "Buyer", w, r);
+	Fund(user.PublicKey, w, r)
 	respondJSON(w, http.StatusCreated, user)
 
 }
@@ -111,11 +112,13 @@ func Verify(public_key string  , types string, w http.ResponseWriter, r *http.Re
         respondError(w, http.StatusBadRequest, "ethClient: " + err.Error())
 		return
 	}
+
 	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
     if err != nil {
 		respondError(w, http.StatusBadRequest, "Private Key : " + err.Error())
 		return
 	}
+
 	publicKey := privateKey.Public()
     publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
     if !ok {
@@ -165,5 +168,66 @@ func Verify(public_key string  , types string, w http.ResponseWriter, r *http.Re
 		}
 		fmt.Printf("tx sent: %s", tx.Hash().Hex())
 	}
+}
+
+func Fund(public_key string, w http.ResponseWriter, r *http.Request) {
+
+	client, err := ethclient.Dial("https://rinkeby.infura.io/v3/" + os.Getenv("INFURA_PROJECT_ID"))
+    if err != nil {
+        respondError(w, http.StatusBadRequest, "ethClient: " + err.Error())
+		return
+	}
+
+    privateKey, err := crypto.HexToECDSA(os.Getenv("FUND_PRIVATE_KEY"))
+    if err != nil {
+		respondError(w, http.StatusBadRequest, "Private Key : " + err.Error())
+		return
+	}
+
+	publicKey := privateKey.Public()
+    publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+    if !ok {
+		respondError(w, http.StatusBadRequest, "cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+		return
+	}
+
+    fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+    nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+    if err != nil {
+		respondError(w, http.StatusBadRequest, "Nonce : " + err.Error())
+		return
+    }
+
+    value := big.NewInt(80000000000000000) // in wei (1 eth)
+    gasLimit := uint64(21000)                // in units
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+    if err != nil {
+		respondError(w, http.StatusBadRequest, "GasPrice: " + err.Error())
+		return
+	}
+
+    toAddress := common2.HexToAddress(public_key)
+    var data []byte
+    tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
+
+    chainID, err := client.NetworkID(context.Background())
+    if err != nil {
+		respondError(w, http.StatusBadRequest, "ChaiNID: " + err.Error())
+		return
+    }
+
+    signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+    if err != nil {
+		respondError(w, http.StatusBadRequest, "SignTX: " + err.Error())
+		return
+    }
+
+    err = client.SendTransaction(context.Background(), signedTx)
+    if err != nil {
+		respondError(w, http.StatusBadRequest, "SendTx: " + err.Error())
+		return
+    }
+
+
 }
 

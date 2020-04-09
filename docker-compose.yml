@@ -27,6 +27,7 @@ services:
         environment:
             - "INFURA_PROJECT_ID=${INFURA_PROJECT_ID}"
             - "PRIVATE_KEY=${PRIVATE_KEY}"
+            - "FUND_PRIVATE_KEY=${FUND_PRIVATE_KEY}"
             - "SMART_CONTRACT_ADDRESS=${SMART_CONTRACT_ADDRESS}"
         networks:
             - internal
