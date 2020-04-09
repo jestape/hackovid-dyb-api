@@ -76,7 +76,7 @@ func (a *App) setRouters() {
 
 // Get wraps the router for GET method
 func (a *App) Get(path string, f func(w http.ResponseWriter, r *http.Request)) *mux.Route {
-	return a.Router.HandleFunc(path, f).Methods("GET")
+	return a.Router.HandleFunc(path, f).Methods("GET", "OPTIONS")
 }
 
 // Post wraps the router for POST method
@@ -86,12 +86,12 @@ func (a *App) Post(path string, f func(w http.ResponseWriter, r *http.Request)) 
 
 // Put wraps the router for PUT method
 func (a *App) Put(path string, f func(w http.ResponseWriter, r *http.Request)) *mux.Route {
-	return a.Router.HandleFunc(path, f).Methods("PUT")
+	return a.Router.HandleFunc(path, f).Methods("PUT", "OPTIONS")
 }
 
 // Delete wraps the router for DELETE method
 func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)) *mux.Route {
-	return a.Router.HandleFunc(path, f).Methods("DELETE")
+	return a.Router.HandleFunc(path, f).Methods("DELETE", "OPTIONS")
 }
 
 // Run the app on it's router

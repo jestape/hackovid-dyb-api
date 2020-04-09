@@ -21,7 +21,7 @@ type Product struct {
 	
 	ID				uint				`gorm:"primary_key" json:"product_id"`
 	Name  			string     			`gorm:"not null" json:"name"`
-	Price	 		uint				`gorm:"default:0" json:"price"`	
+	Price	 		float64				`gorm:"default:0" json:"price"`	
 
 }
 

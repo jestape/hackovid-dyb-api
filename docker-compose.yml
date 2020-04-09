@@ -24,6 +24,10 @@ services:
             context: .
             dockerfile: Dockerfile
         container_name: api
+        environment:
+            - "INFURA_PROJECT_ID=${INFURA_PROJECT_ID}"
+            - "PRIVATE_KEY=${PRIVATE_KEY}"
+            - "SMART_CONTRACT_ADDRESS=${SMART_CONTRACT_ADDRESS}"
         networks:
             - internal
         ports:
