@@ -5,15 +5,14 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
 	"github.com/jestape/hackovid-dyb-api/src/app/handler"
 	"github.com/jestape/hackovid-dyb-api/src/app/model"
 	"github.com/jestape/hackovid-dyb-api/src/config"
-	
 )
 
 // App has router and db instances
@@ -46,8 +45,10 @@ func (a *App) Initialize(config *config.Config) {
 func (a *App) setRouters() {
 	// Routing for handling the projects
 
-	a.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("Hello world! This is the DoYourBit api.")) })
-	
+	a.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello world! This is the DoYourBit api."))
+	})
+
 	a.Get("/users/{pk}", a.handleRequest(handler.GetUser))
 	a.Get("/users", a.handleRequest(handler.GetUsers))
 	a.Post("/seller", a.handleRequest(handler.CreateSeller))
@@ -63,20 +64,28 @@ func (a *App) setRouters() {
 	a.Post("/tickets", a.handleRequest(handler.CreateTicket))
 	a.Put("/tickets/{id}", a.handleRequest(handler.UpdateTicket))
 
+	cors := handlers.CORS(
+		handlers.AllowedHeaders([]string{"content-type"}),
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT"}),
+		handlers.AllowCredentials(),
+	)
+
+	a.Router.Use(cors)
 }
 
 // Get wraps the router for GET method
-func (a *App) Get(path string, f func(w http.ResponseWriter, r *http.Request))  *mux.Route {
+func (a *App) Get(path string, f func(w http.ResponseWriter, r *http.Request)) *mux.Route {
 	return a.Router.HandleFunc(path, f).Methods("GET")
 }
 
 // Post wraps the router for POST method
 func (a *App) Post(path string, f func(w http.ResponseWriter, r *http.Request)) *mux.Route {
-	return a.Router.HandleFunc(path, f).Methods("POST")
+	return a.Router.HandleFunc(path, f).Methods("POST", "OPTIONS")
 }
 
 // Put wraps the router for PUT method
-func (a *App) Put(path string, f func(w http.ResponseWriter, r *http.Request))  *mux.Route {
+func (a *App) Put(path string, f func(w http.ResponseWriter, r *http.Request)) *mux.Route {
 	return a.Router.HandleFunc(path, f).Methods("PUT")
 }
 
@@ -87,12 +96,7 @@ func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)
 
 // Run the app on it's router
 func (a *App) Run(host string) {
-
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	originsOk := handlers.AllowedOrigins([]string{"*"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
-
-	log.Fatal(http.ListenAndServe(host, handlers.CORS(headersOk, originsOk, methodsOk)(a.Router)))
+	log.Fatal(http.ListenAndServe(host, a.Router))
 }
 
 type RequestHandlerFunction func(db *gorm.DB, w http.ResponseWriter, r *http.Request)
