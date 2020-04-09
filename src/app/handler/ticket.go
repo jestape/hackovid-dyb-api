@@ -11,9 +11,8 @@ import (
 func GetTicket(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	
 	ticket := model.Ticket{}
-	id := r.URL.Query().Get("id")
-
-	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("id = ?", id).Find(&ticket); 
+	params := mux.Vars(r)
+	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("id = ?", params["id"]).Find(&ticket); 
 
 	if ticket.SellerID == "" {
 		respondError(w, http.StatusInternalServerError, "Ticket not found")
@@ -43,7 +42,7 @@ func GetTicketsUserB(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 func GetTicketsUserS(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
-	seller := r.URL.Query().Get("seller")
+	buyer := r.URL.Query().Get("seller")
 	tickets := []model.Ticket{}
 	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("seller_id = ?", seller).Find(&tickets)
 	respondJSON(w, http.StatusOK, tickets)
