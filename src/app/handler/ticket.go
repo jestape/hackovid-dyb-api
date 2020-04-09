@@ -15,7 +15,7 @@ func GetTicket(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("id = ?", params["id"]).Find(&ticket); 
 
-	if ticket.SellerId == "" {
+	if ticket.SellerID == "" {
 		respondError(w, http.StatusInternalServerError, "Ticket not found")
 	} else {
 		respondJSON(w, http.StatusOK, ticket) 
