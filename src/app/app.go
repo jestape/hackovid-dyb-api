@@ -58,8 +58,9 @@ func (a *App) setRouters() {
 	a.Get("/products", a.handleRequest(handler.GetProducts))
 	a.Post("/products", a.handleRequest(handler.CreateProduct))
 
-	a.Get("/tickets/{id}", a.handleRequest(handler.GetTicket))
-	a.Get("/tickets", a.handleRequest(handler.GetTicketsUser)).Queries("buyer", "{buyer}")
+	a.Get("/tickets", a.handleRequest(handler.GetTicket)).Queries("id", "{id}")
+	a.Get("/tickets", a.handleRequest(handler.GetTicketsUserB)).Queries("buyer", "{buyer}")
+	a.Get("/tickets", a.handleRequest(handler.GetTicketsUserS)).Queries("seller", "{seller}")
 	a.Get("/tickets", a.handleRequest(handler.GetTickets))
 	a.Post("/tickets", a.handleRequest(handler.CreateTicket))
 	a.Put("/tickets/{id}", a.handleRequest(handler.UpdateTicket))
