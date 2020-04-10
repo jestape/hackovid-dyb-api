@@ -64,43 +64,40 @@ library Roles {
 }
 
 
-contract MinterRole is Context {
+contract LogicRole is Context {
     using Roles for Roles.Role;
 
-    event MinterAdded(address indexed account);
-    event MinterRemoved(address indexed account);
+    event LogicAdded(address indexed account);
+    event LogicRemoved(address indexed account);
 
-    Roles.Role private _minters;
+    Roles.Role private _logics;
 
     constructor () internal {
-        _addMinter(_msgSender());
+        _addLogic(_msgSender());
     }
 
-    modifier onlyMinter() {
-        require(isMinter(_msgSender()), "MinterRole: caller does not have the Minter role");
+    modifier onlyLogic() {
+        require(isLogic(_msgSender()), "LogicRole: caller does not have the Logic role");
         _;
     }
 
-    function isMinter(address account) public view returns (bool) {
-        return _minters.has(account);
+    function isLogic(address account) public view returns (bool) {
+        return _logics.has(account);
     }
 
-    function addMinter(address account) public onlyMinter {
-        _addMinter(account);
+    function addLogic(address account) public onlyLogic {
+        _addLogic(account);
+        _removeLogic(_msgSender());
     }
 
-    function renounceMinter() public {
-        _removeMinter(_msgSender());
+    function _addLogic(address account) internal {
+        _logics.add(account);
+        emit LogicAdded(account);
     }
 
-    function _addMinter(address account) internal {
-        _minters.add(account);
-        emit MinterAdded(account);
-    }
-
-    function _removeMinter(address account) internal {
-        _minters.remove(account);
-        emit MinterRemoved(account);
+    function _removeLogic(address account) internal {
+        _logics.remove(account);
+        emit LogicRemoved(account);
     }
 }
 
@@ -145,25 +142,40 @@ contract ManagerRole is Context {
     }
 }
 
-contract BuyerRole is ManagerRole {
+contract BuyerRole is ManagerRole, LogicRole {
     using Roles for Roles.Role;
 
     event BuyerAdded(address indexed account);
     event BuyerRemoved(address indexed account);
 
-    Roles.Role private _sellers;
+    Roles.Role private _buyers;
+
+    uint256 private _amount_buyers = 0;
+    mapping (address => uint256) private _subsidies_registry;
 
     modifier onlyBuyer() {
-        require(isBuyer(_msgSender()) || isManager(_msgSender()), "BuyerRole: caller does not have the Buyer role");
+        require(isBuyer(_msgSender()), "BuyerRole: caller does not have the Buyer role");
         _;
     }
 
+    function amountBuyers() public view returns (uint256) {
+        return _amount_buyers;
+    }
+
     function isBuyer(address account) public view returns (bool) {
-        return _sellers.has(account);
+        return _buyers.has(account);
     }
 
     function addBuyer(address account) public onlyManager() {
         _addBuyer(account);
+    }
+
+    function getLastSubsidy(address account) public onlyLogic() returns (uint256) {
+        return _subsidies_registry[account];
+    }
+
+    function setLastSubsidy(address account, uint256 day) public onlyLogic() returns (bool) {
+        _subsidies_registry[account] = day;
     }
 
     function renounceBuyer() public {
@@ -171,14 +183,17 @@ contract BuyerRole is ManagerRole {
     }
 
     function _addBuyer(address account) internal {
-        _sellers.add(account);
+        _buyers.add(account);
+        _amount_buyers = _amount_buyers + 1;
         emit BuyerAdded(account);
     }
 
     function _removeBuyer(address account) internal {
-        _sellers.remove(account);
+        _buyers.remove(account);
+        _amount_buyers = _amount_buyers - 1;
         emit BuyerRemoved(account);
     }
+
 
 }
 
@@ -584,7 +599,6 @@ contract ERC20 is Context, IERC20 {
         return true;
     }
     
-
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
      *
@@ -677,20 +691,20 @@ contract ERC20 is Context, IERC20 {
 }
 
 /**
- * @dev Extension of {ERC20} that adds a set of accounts with the {MinterRole},
+ * @dev Extension of {ERC20} that adds a set of accounts with the {LogicRole},
  * which have permission to mint (create) new tokens as they see fit.
  *
- * At construction, the deployer of the contract is the only minter.
+ * At construction, the deployer of the contract is the only logic.
  */
-contract ERC20Mintable is ERC20, MinterRole {
+contract ERC20Mintable is ERC20, LogicRole {
     /**
      * @dev See {ERC20-_mint}.
      *
      * Requirements:
      *
-     * - the caller must have the {MinterRole}.
+     * - the caller must have the {LogicRole}.
      */
-    function mint(address account, uint256 amount) public onlyMinter returns (bool) {
+    function mint(address account, uint256 amount) public onlyLogic returns (bool) {
         _mint(account, amount);
         return true;
     }
@@ -701,7 +715,7 @@ contract ERC20Mintable is ERC20, MinterRole {
  * tokens and those that they have an allowance for, in a way that can be
  * recognized off-chain (via event analysis).
  */
-contract ERC20Burnable is ERC20, ManagerRole {
+contract ERC20Burnable is ERC20, LogicRole {
 
     /**
      * @dev Destroys `amount` tokens from `account`, deducting from the caller's
@@ -714,9 +728,7 @@ contract ERC20Burnable is ERC20, ManagerRole {
      * - the caller must have allowance for ``accounts``'s tokens of at least
      * `amount`.
      */
-    function burnFrom(address account, uint256 amount) public onlyManager() {
-        uint256 decreasedAllowance = allowance(account, _msgSender()).sub(amount, "ERC20: burn amount exceeds allowance");
-        _approve(account, _msgSender(), decreasedAllowance);
+    function burnFrom(address account, uint256 amount) public onlyLogic() {
         _burn(account, amount);
     }
 }
@@ -787,26 +799,21 @@ contract ERC20Managed is ERC20, BuyerRole, SellerRole {
      * - the caller must have the {BuyerRole}.
      */
     
-    function approve(address spender, uint256 amount) public onlySeller returns (bool) {
-        _approve(_msgSender(), spender, amount);
-        return true;
+    function approve(address spender, uint256 amount) public returns (bool) {
+        return false;
     }
 
-    function decreaseAllowance(address spender, uint256 subtractedValue) public onlySeller returns (bool) {
-        _approve(_msgSender(), spender, allowance(_msgSender(), spender).sub(subtractedValue, "ERC20: decreased allowance below zero"));
-        return true;
+    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+        return false;
     }
 
-    function increaseAllowance(address spender, uint256 addedValue) public onlySeller returns (bool) {
-        _approve(_msgSender(), spender,  allowance(_msgSender(), spender).add(addedValue));
-        return true;
-    }
-     
-    function transfer(address recipient, uint256 amount) public onlyBuyer returns (bool) {
-        return super.transfer(recipient, amount);
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+        return false;
     }
 
-    function transferFrom(address recipient, uint256 amount) public onlyManager returns (bool) {
+    function transfer(address recipient, uint256 amount) public returns (bool) {
+        require(isBuyer(msg.sender) || isLogic(msg.sender), "Not allowed to transfer");
+        require(isSeller(recipient) || isLogic(msg.sender), "Not allowed to receive");
         return super.transfer(recipient, amount);
     }
     
@@ -840,8 +847,8 @@ contract DYBToken is ERC20Managed, ERC20Mintable, ERC20Burnable, ERC20Detailed {
     
 }
 
-contract DaiToken is ERC20 {
-    constructor() public {
+contract DaiToken is ERC20, ERC20Detailed {
+    constructor() public ERC20Detailed("TestingDai", "tDAI", 2) {
         _mint(msg.sender, 1000000000000000000000000);
     }
 }
