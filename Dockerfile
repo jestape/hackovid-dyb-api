@@ -34,6 +34,8 @@ COPY --from=builder /dist/main /
 
 COPY .env.yml /
 COPY wait-for-it.sh /
+COPY https-server.crt /
+COPY https-server.key /
 
 RUN apk update && apk add bash
 # Script to wait for the database to be initialized.

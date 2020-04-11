@@ -17,3 +17,5 @@ vendor/
 .idea/
 .env.yml
 .env
+https-server.crt
+https-server.key
