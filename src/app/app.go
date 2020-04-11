@@ -13,6 +13,7 @@ import (
 	"github.com/jestape/hackovid-dyb-api/src/app/handler"
 	"github.com/jestape/hackovid-dyb-api/src/app/model"
 	"github.com/jestape/hackovid-dyb-api/src/config"
+
 )
 
 // App has router and db instances
@@ -98,7 +99,7 @@ func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)
 
 // Run the app on it's router
 func (a *App) Run(host string) {
-	log.Fatal(http.ListenAndServeTLS(host, "https-server.crt", "https-server.key", a.Router))
+	log.Fatal(http.ListenAndServe(host, a.Router))
 }
 
 type RequestHandlerFunction func(db *gorm.DB, w http.ResponseWriter, r *http.Request)

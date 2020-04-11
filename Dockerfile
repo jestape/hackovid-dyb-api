@@ -30,6 +30,8 @@ RUN cp /build/main .
 # Build a small image
 FROM alpine:3.11
 
+EXPOSE 443/tcp
+
 COPY --from=builder /dist/main /
 
 COPY .env.yml /

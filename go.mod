@@ -9,4 +9,5 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/gorilla/handlers v1.4.2
 	github.com/ethereum/go-ethereum v1.9.12
+
 )
