@@ -32,9 +32,9 @@ services:
         networks:
             - internal
         ports:
-            - 443:443
+            - 4040:4040
         expose:
-            - 443
+            - 4040
         
 networks:
     internal:
