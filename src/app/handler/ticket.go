@@ -22,6 +22,20 @@ func GetTicket(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 }
 
+func GetTicketTxHash(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	
+	ticket := model.Ticket{}
+	params := mux.Vars(r)
+	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("tx_hash = ?", params["tx_hash"]).Find(&ticket); 
+
+	if ticket.SellerID == "" {
+		respondError(w, http.StatusInternalServerError, "Ticket not found")
+	} else {
+		respondJSON(w, http.StatusOK, ticket) 
+	}
+
+}
+
 func GetTickets(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	
 	tickets := []model.Ticket{}
@@ -44,7 +58,7 @@ func GetTicketsUserS(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 
 	seller := r.URL.Query().Get("seller")
 	tickets := []model.Ticket{}
-	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("seller_id = ?", seller).Find(&tickets)
+	db.Preload("TicketProducts.Product").Preload("Seller.User").Where("seller_id = ? AND tx_hash <> ''", seller).Find(&tickets)
 	respondJSON(w, http.StatusOK, tickets)
 
 }

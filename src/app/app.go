@@ -61,6 +61,7 @@ func (a *App) setRouters() {
 	a.Get("/tickets/{id}", a.handleRequest(handler.GetTicket))
 	a.Get("/tickets", a.handleRequest(handler.GetTicketsUserB)).Queries("buyer", "{buyer}")
 	a.Get("/tickets", a.handleRequest(handler.GetTicketsUserS)).Queries("seller", "{seller}")
+	a.Get("/tickets", a.handleRequest(handler.GetTicketTxHash)).Queries("tx_hash", "{tx_hash}")
 	a.Get("/tickets", a.handleRequest(handler.GetTickets))
 	a.Post("/tickets", a.handleRequest(handler.CreateTicket))
 	a.Put("/tickets/{id}", a.handleRequest(handler.UpdateTicket))
